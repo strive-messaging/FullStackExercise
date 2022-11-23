@@ -23,7 +23,9 @@ interface FieldDefinition {
 }
 ```
 
-Please put some form inputs in a box in the provided order and in the specified sizes. For any vagaries in instructions 
+Please put some form inputs in a box in the provided order and in the specified sizes. For any vagaries in instructions, please document whatever is under-specified then make your own best judgment. We're excited to hear what decisions you made and why.
+
+Use of tailwind-based styles is preferred.
 
 
 ### Questions
