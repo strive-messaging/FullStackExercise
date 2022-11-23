@@ -1,3 +1,36 @@
+# Strive Messaging Frontend Coding Challenge
+
+## Front End Developer/UX Designer Coding Challenge: Member Editing Form Arrangement
+
+Our application supports permissioned access by `organizer` users, organizers who work with a given campaign, to the fields of each `member`, people who are messaged by a given campaign. Member information may include fields such as `firstName`, `lastName`, `email`, etc.
+
+Given a few arrays of field permissions of type:
+```typescript
+interface FieldPermission {
+    key: string
+    edit: boolean
+}
+```
+
+and field input definitions:
+```typescript
+interface FieldDefinition {
+    key: string
+    label: string
+    type: 'text' | 'number' | 'date' | 'email' | 'boolean' | 'option'
+    options?: string[]
+    rowSpan?: number
+}
+```
+
+Please put some form inputs in a box in the provided order and in the specified sizes. For any vagaries in instructions 
+
+
+### Questions
+  * What variety of different "types" of inputs are supported?
+  * What changes would you make, if any, to the field permission type, the field definition type, or how each are stored?
+
+----
 <p align="center">
   <img src="https://user-images.githubusercontent.com/26466516/107675802-36216b80-6c77-11eb-8db1-4d3407dc53d9.png" alt="Next.js and TypeScript">
 </p>
