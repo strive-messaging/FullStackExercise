@@ -5,18 +5,16 @@ async function simulateFlow(flowId: number, member: any, message: string) {
   const res = await fetch(`/api/flows/${flowId}/simulate`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       member,
       message,
-      startIndex: 0
-    })
+      startIndex: 0,
+    }),
   })
   return res
 }
-
-
 
 export default function Home() {
   const [flowId, setFlowId] = useState(1)
@@ -38,7 +36,9 @@ export default function Home() {
               Please implement a &quot;Flow Simulator&quot;
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600">
-              At the endpoint `/api/flows/[flowId]/simulate`, please implement a route that takes whatever inputs may be necessary and returns whatever information you feel is necessary to conduct and display an ongoing conversation between a member and a flow.
+              At the endpoint `/api/flows/[flowId]/simulate`, please implement a route that takes
+              whatever inputs may be necessary and returns whatever information you feel is
+              necessary to conduct and display an ongoing conversation between a member and a flow.
               Below, please display the messages, back and forth, betwen the member and the flow.
             </p>
           </div>
@@ -52,14 +52,14 @@ export default function Home() {
               <option>3</option>
             </select>
             <p className="mt-2 text-center text-sm text-gray-600">
-              Feel free to use (or not use) this selector to flip between potential flows. Three
-              are provided.
+              Feel free to use (or not use) this selector to flip between potential flows. Three are
+              provided.
             </p>
           </div>
 
           <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-2xl">
             <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-              <div className='border-solid border-2 border-indigo-600 h-64'>
+              <div className="border-solid border-2 border-indigo-600 h-64">
                 {messages.map((m, i) => (
                   <div key={i} className="m-1 bg-slate-200">
                     {m.message}
@@ -68,10 +68,10 @@ export default function Home() {
               </div>
               <div className="border-solid border border-slate-100 my-1">
                 <input
-                  className='w-full'
+                  className="w-full"
                   onChange={(e) => console.warn(e.target.value)}
                   placeholder="Send message"
-                  />
+                />
               </div>
             </div>
           </div>
