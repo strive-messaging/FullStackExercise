@@ -1,36 +1,13 @@
-# Strive Messaging Frontend Coding Challenge
+# Strive Messaging FullStack Coding Challenge
 
-## Front End Developer/UX Designer Coding Challenge: Member Editing Form Arrangement
+## FullStack Coding Challenge: Member Editing Form Arrangement
 
-Our application supports permissioned access by `organizer` users, organizers who work with a given campaign, to the fields of each `member`, people who are messaged by a given campaign. Member information may include fields such as `firstName`, `lastName`, `email`, etc.
-
-Given a few arrays of field permissions of type:
-```typescript
-interface FieldPermission {
-    key: string
-    edit: boolean
-}
-```
-
-and field input definitions:
-```typescript
-interface FieldDefinition {
-    key: string
-    label: string
-    type: 'text' | 'number' | 'date' | 'email' | 'boolean' | 'option'
-    options?: string[]
-    rowSpan?: number
-}
-```
-
-Please put some form inputs in a box in the provided order and in the specified sizes. For any vagaries in instructions, please document whatever is under-specified then make your own best judgment. We're excited to hear what decisions you made and why.
-
-Use of tailwind-based styles is preferred.
+Our application supports automated conversation between `flows` and campaign `members`, who text in. Types for the relevant data structures can be found in `lib/models`, along with three provided flows.
 
 
-### Questions
-  * What variety of different "types" of inputs are supported?
-  * What changes would you make, if any, to the field permission type, the field definition type, or how each are stored?
+Please hook up the provided input and box of messages (extend or change as necessary) such that a conversation between a member, controlled by the user, and a flow, controlled by `lib/flows/machine` can be conducted.
+
+If you encounter any issues or ambiguities, please note them then use your best judgment to proceed in what you believe is the spirit of the exercise. Use of tailwind-based styles is preferred.
 
 ----
 <p align="center">
