@@ -1,6 +1,8 @@
-import { init, receiveMessage } from '@/lib/flows/machine'
+import { init, MachineMessaging } from '@/lib/flows/machine'
 import { Flow, FLOWS, Member } from '@/lib/models'
 import { NextApiRequest, NextApiResponse } from 'next'
+
+const Machine = new MachineMessaging()
 
 // Flow Simulation Endpoint
 // By making a series of requests to this endpoint, please simulate the back-and-forth
@@ -21,12 +23,12 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   // const y = init(?)
   // const x = receiveMessage(?)
 
-  const result = await receiveMessage(
+  const result = await Machine.receiveMessage(
     member as unknown as Member,
     flow as Flow,
     startIndex,
     message
   )
   console.warn(result)
-  return res.json({ ok: true })
+  return res.json({ ok: true, data: result })
 }

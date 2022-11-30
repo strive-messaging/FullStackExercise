@@ -6,6 +6,14 @@ export interface Flow {
   id: number;
   name: string;
   definition: FlowAction[]
+  type: FlowType
+}
+
+export interface Message {
+  message: string
+  member: Member
+  flow: Flow,
+  index: number
 }
 
 export interface FlowMessageAction {
@@ -46,10 +54,16 @@ export interface User {
   organizationId: number;
 }
 
+export enum FlowType {
+  STANDARD = 'STANDARD',
+  SELECT = 'SELECT',
+  FORM = 'FORM',
+}
+
 // Flows Array
 // Normally this would be in a database, but is just here for convenience.
 export const FLOWS: Flow[] = [
-  { id: 1, name: 'Hello World Flow', definition: [{ type: 'message', message: 'hello' }] },
+  { id: 1, name: 'Hello World Flow', definition: [{ type: 'message', message: 'hello' }], type: FlowType.STANDARD },
   {
       id: 2, name: 'Multiple Choice Flow', definition: [
           { type: 'message', message: 'Thank you for texting in' },
@@ -62,12 +76,14 @@ export const FLOWS: Flow[] = [
                   { value: 'blue', message: 'You responded "blue".', synonyms: [] },
               ]
           },
-      ]
+      ],
+      type: FlowType.SELECT,
   },
   {
       id: 3, name: 'Asking Question Flow', definition: [
           { type: 'getInfo', message: 'What is your name?', key: 'name' },
           { type: 'message', message: 'Thank you for sending in your name!' }
-      ]
+      ],
+      type: FlowType.FORM,
   }
 ]
