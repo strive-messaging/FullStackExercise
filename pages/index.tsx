@@ -1,5 +1,10 @@
-import Head from 'next/head'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { FlowResult } from '@/types/form'
+import { Message } from '@/lib/models'
+import Header from '@/lib/components/Header'
+import Footer from '@/lib/components/Footer'
+import MessageFeed from '@/lib/components/MessageFeed'
+import TextFlow from '@/lib/components/TextFlow'
 
 async function simulateFlow(flowId: number, member: any, message: string) {
   const res = await fetch(`/api/flows/${flowId}/simulate`, {
@@ -13,39 +18,69 @@ async function simulateFlow(flowId: number, member: any, message: string) {
       startIndex: 0,
     }),
   })
-  return res
+  return res.json()
+}
+
+async function initFlow(flowId: number, member: any) {
+  const res = await fetch(`/api/flows/${flowId}/${member.id || 0}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  })
+  return res.json()
 }
 
 export default function Home() {
   const [flowId, setFlowId] = useState(1)
+  const [flowHeader, setFlowHeader] = useState('')
+  const [query, setQuery] = useState('')
+  const [scriptedMessages, setScriptedMessages] = useState([] as Message[])
+  const [messageFeed, setMessageFeed] = useState([] as Message[])
+  const [currentIndex, setCurrentIndex] = useState(1)
+  const [lastIndex, setLastIndex] = useState(1)
+  const [isAwaitingUserInput, setIsAwaitingUserInput] = useState(true)
 
-  // This format provided for convenience. Please change if necessary.
-  const [messages, setMessages] = useState([{ message: 'placeholder, remove me' }])
+  const moveFlow = () => {
+    setMessageFeed(oldState => [...oldState, {message: query} as unknown as Message])
+    setQuery('')
+
+    if (currentIndex === lastIndex)
+      setIsAwaitingUserInput(false)
+    else setCurrentIndex(currentIndex+1)
+  }
+
+  useEffect(() => {
+    initFlow(flowId, {}).then(({
+      flowName,
+      messages,
+      stopIndex
+    }: FlowResult) => {
+      setFlowHeader(flowName)
+      setLastIndex(stopIndex)
+      setScriptedMessages(messages)
+      setMessageFeed(messages)
+    })
+  }, [flowId])
 
   return (
-    <div className="h-screen bg-gray-50">
-      <Head>
-        <title>Strive Flow Simulation Exercise</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+    <div className="flex flex-col h-screen bg-gray-50">
+      <Header />
 
       <main className="h-full bg-gray-50">
-        <div className="flex min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="flex min-h-full flex-col py-12 sm:px-6 lg:px-8">
           <div className="sm:mx-auto sm:w-full sm:max-w-md">
-            <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-              Please implement a &quot;Flow Simulator&quot;
-            </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
-              At the endpoint `/api/flows/[flowId]/simulate`, please implement a route that takes
-              whatever inputs may be necessary and returns whatever information you feel is
-              necessary to conduct and display an ongoing conversation between a member and a flow.
-              Below, please display the messages, back and forth, betwen the member and the flow.
-            </p>
+            <h1 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
+              {flowHeader}
+            </h1>
           </div>
           <div className="mt-8 mx-auto max-w-sm text-center">
             <select
               className="border mx-auto border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-              onChange={(e) => setFlowId(parseInt(e.target.value || '1', 10))}
+              onChange={({ target }) => {
+                setMessageFeed([])
+                setFlowId(parseInt(target.value || '1', 10))
+              }}
             >
               <option>1</option>
               <option>2</option>
@@ -58,25 +93,25 @@ export default function Home() {
           </div>
 
           <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-2xl">
-            <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-              <div className="border-solid border-2 border-indigo-600 h-64">
-                {messages.map((m, i) => (
-                  <div key={i} className="m-1 bg-slate-200">
-                    {m.message}
-                  </div>
-                ))}
-              </div>
-              <div className="border-solid border border-slate-100 my-1">
-                <input
-                  className="w-full"
-                  onChange={(e) => console.warn(e.target.value)}
-                  placeholder="Send message"
-                />
-              </div>
-            </div>
+            <MessageFeed {...{
+              messageFeed,
+              scriptedMessages,
+              currentIndex,
+              lastIndex,
+              isAwaitingUserInput,
+            }}/>
+
+            <TextFlow {...{
+              query,
+              isAwaitingUserInput,
+              setQuery,
+              moveFlow,
+            }}/>
           </div>
         </div>
       </main>
+
+      <Footer />
     </div>
   )
 }

@@ -46,28 +46,71 @@ export interface User {
   organizationId: number;
 }
 
+export interface Message {
+  message: string;
+  type?: string;
+}
+
 // Flows Array
 // Normally this would be in a database, but is just here for convenience.
 export const FLOWS: Flow[] = [
-  { id: 1, name: 'Hello World Flow', definition: [{ type: 'message', message: 'hello' }] },
   {
-      id: 2, name: 'Multiple Choice Flow', definition: [
-          { type: 'message', message: 'Thank you for texting in' },
-          {
-              type: 'multipleChoice',
-              message: 'What is your favorite color?',
-              responses: [
-                  { value: 'red', message: 'You responded "red".', synonyms: [] },
-                  { value: 'green', message: 'You responded "green".', synonyms: [] },
-                  { value: 'blue', message: 'You responded "blue".', synonyms: [] },
-              ]
-          },
-      ]
+    id: 1,
+    name: 'Hello World Flow',
+    definition: [
+      {
+        type: 'message',
+        message: 'hello',
+      },
+    ],
   },
   {
-      id: 3, name: 'Asking Question Flow', definition: [
-          { type: 'getInfo', message: 'What is your name?', key: 'name' },
-          { type: 'message', message: 'Thank you for sending in your name!' }
-      ]
-  }
+    id: 2,
+    name: 'Multiple Choice Flow',
+    definition: [
+      {
+        type: 'message',
+        message: 'Thank you for texting in',
+      },
+      {
+        type: 'multipleChoice',
+        message: 'What is your favorite color?',
+        responses: [
+          {
+            value: 'red',
+            message: 'You responded "red".',
+            synonyms: [],
+          },
+          {
+            value: 'green',
+            message: 'You responded "green".',
+            synonyms: [],
+          },
+          {
+            value: 'blue',
+            message: 'You responded "blue".',
+            synonyms: [],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 3,
+    name: 'Asking Question Flow',
+    definition: [
+      {
+        type: 'getInfo',
+        message: 'What is your name?',
+        key: 'name',
+      },
+      {
+        type: 'message',
+        message: 'Thank you for sending in your name!',
+      },
+    ],
+  },
+]
+
+export const MEMBERS: Member[] = [
 ]

@@ -12,14 +12,25 @@ export async function init(
 ) {
   let stopIndex = 0
   const messages = []
+
   for (const action of flow.definition) {
-    messages.push(action.message)
+    messages.push({
+      message: action.message,
+      type: action.type,
+    })
+
     if (['getInfo', 'multipleChoice'].includes(action.type)) {
       break
     }
     stopIndex++
   }
-  return { messages, stopIndex }
+
+  return {
+    flowName: flow.name,
+    messages,
+    stopIndex,
+    member,
+  }
 }
 
 export async function receiveMessage(
@@ -30,8 +41,13 @@ export async function receiveMessage(
 ) {
   let index = 0
   const messages = []
+
   for (const action of flow.definition.slice(startIndex)) {
-    messages.push(action.message)
+    messages.push({
+      message: action.message,
+      type: action.type,
+    })
+
     if (index !== 0 && ['getInfo', 'multipleChoice'].includes(action.type)) {
       break
     }
@@ -44,7 +60,10 @@ export async function receiveMessage(
         return r.value === message.trim() || r.synonyms.includes(message.trim())
       })
       if (match) {
-        messages.push(match.message)
+        messages.push({
+          message: action.message,
+          type: action.type,
+        })
       }
     }
     index++

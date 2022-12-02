@@ -11,3 +11,9 @@ export interface FieldDefinition {
   options?: string[]
   rowSpan?: number
 }
+
+export interface FlowResult {
+  flowName: string;
+  messages: Message[];
+  stopIndex: number;
+}
