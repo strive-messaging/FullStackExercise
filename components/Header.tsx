@@ -10,7 +10,7 @@ export default function Header() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <header className="py-12 sm:px-6 lg:px-8">
+      <header className="p-4 bg-teal-100">
         <Link href="/">
           <Image
             src="/strive.svg"

@@ -17,7 +17,7 @@ export default function MessageFeed({
 }: MessageFeedProps) {
   return (
     <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-      <div className="border-solid border-2 border-indigo-600 h-64">
+      <div className="border-solid border-2 border-indigo-600 h-80">
         {messageFeed.map(({ message }, i) => (
           scriptedMessages.map(({ message }) => message).includes(message)
             ? <div key={i} className="m-1 bg-slate-200 font-medium p-2">

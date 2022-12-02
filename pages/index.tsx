@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { FlowResult } from '@/types/form'
 import { Message } from '@/lib/models'
-import Header from '@/lib/components/Header'
-import Footer from '@/lib/components/Footer'
-import MessageFeed from '@/lib/components/MessageFeed'
-import TextFlow from '@/lib/components/TextFlow'
+import Header from '@/components/Header'
+import Footer from '@/components/Footer'
+import MessageFeed from '@/components/MessageFeed'
+import TextFlow from '@/components/TextFlow'
+import FlowChooser from '@/components/FlowChooser'
 
 async function simulateFlow(flowId: number, member: any, message: string) {
   const res = await fetch(`/api/flows/${flowId}/simulate`, {
@@ -69,28 +70,11 @@ export default function Home() {
 
       <main className="h-full bg-gray-50">
         <div className="flex min-h-full flex-col py-12 sm:px-6 lg:px-8">
-          <div className="sm:mx-auto sm:w-full sm:max-w-md">
-            <h1 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-              {flowHeader}
-            </h1>
-          </div>
-          <div className="mt-8 mx-auto max-w-sm text-center">
-            <select
-              className="border mx-auto border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-              onChange={({ target }) => {
-                setMessageFeed([])
-                setFlowId(parseInt(target.value || '1', 10))
-              }}
-            >
-              <option>1</option>
-              <option>2</option>
-              <option>3</option>
-            </select>
-            <p className="mt-2 text-center text-sm text-gray-600">
-              Feel free to use (or not use) this selector to flip between potential flows. Three are
-              provided.
-            </p>
-          </div>
+          <FlowChooser {...{
+            setMessageFeed,
+            setFlowId,
+            flowHeader,
+          }}/>
 
           <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-2xl">
             <MessageFeed {...{
@@ -101,12 +85,14 @@ export default function Home() {
               isAwaitingUserInput,
             }}/>
 
-            <TextFlow {...{
-              query,
-              isAwaitingUserInput,
-              setQuery,
-              moveFlow,
-            }}/>
+            <div className="h-24 mt-4">
+              <TextFlow {...{
+                query,
+                isAwaitingUserInput,
+                setQuery,
+                moveFlow,
+              }}/>
+            </div>
           </div>
         </div>
       </main>
