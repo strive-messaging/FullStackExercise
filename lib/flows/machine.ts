@@ -14,10 +14,7 @@ export async function init(
   const messages = []
 
   for (const action of flow.definition) {
-    messages.push({
-      message: action.message,
-      type: action.type,
-    })
+    messages.push({ ...action })
 
     if (['getInfo', 'multipleChoice'].includes(action.type)) {
       break
@@ -43,10 +40,7 @@ export async function receiveMessage(
   const messages = []
 
   for (const action of flow.definition.slice(startIndex)) {
-    messages.push({
-      message: action.message,
-      type: action.type,
-    })
+    messages.push({ ...action })
 
     if (index !== 0 && ['getInfo', 'multipleChoice'].includes(action.type)) {
       break
@@ -60,10 +54,7 @@ export async function receiveMessage(
         return r.value === message.trim() || r.synonyms.includes(message.trim())
       })
       if (match) {
-        messages.push({
-          message: action.message,
-          type: action.type,
-        })
+        messages.push({ ...action })
       }
     }
     index++

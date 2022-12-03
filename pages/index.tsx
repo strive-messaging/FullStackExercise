@@ -3,9 +3,10 @@ import { FlowResult } from '@/types/form'
 import { Message } from '@/lib/models'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import FlowChooser from '@/components/FlowChooser'
 import MessageFeed from '@/components/MessageFeed'
 import TextFlow from '@/components/TextFlow'
-import FlowChooser from '@/components/FlowChooser'
+import MultipleChoiceFlow from '@/components/MultipleChoiceFlow'
 
 async function simulateFlow(flowId: number, member: any, message: string) {
   const res = await fetch(`/api/flows/${flowId}/simulate`, {
@@ -42,9 +43,8 @@ export default function Home() {
   const [lastIndex, setLastIndex] = useState(1)
   const [isAwaitingUserInput, setIsAwaitingUserInput] = useState(true)
 
-  const moveFlow = () => {
-    setMessageFeed(oldState => [...oldState, {message: query} as unknown as Message])
-    setQuery('')
+  const moveFlow = (message: string) => {
+    setMessageFeed(oldState => [...oldState, { message } as unknown as Message])
 
     if (currentIndex === lastIndex)
       setIsAwaitingUserInput(false)
@@ -64,6 +64,10 @@ export default function Home() {
     })
   }, [flowId])
 
+  const { type: messageType, responses=[] } = messageFeed.length
+    ? messageFeed[messageFeed.length-1]
+    : { type: null }
+
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       <Header />
@@ -74,6 +78,8 @@ export default function Home() {
             setMessageFeed,
             setFlowId,
             flowHeader,
+            setIsAwaitingUserInput,
+            setQuery,
           }}/>
 
           <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-2xl">
@@ -86,12 +92,22 @@ export default function Home() {
             }}/>
 
             <div className="h-24 mt-4">
-              <TextFlow {...{
-                query,
-                isAwaitingUserInput,
-                setQuery,
-                moveFlow,
-              }}/>
+              { messageFeed.length && (
+                messageType === 'message'|| messageType === 'getInfo'
+                ? <TextFlow {...{
+                    query,
+                    isAwaitingUserInput,
+                    setQuery,
+                    moveFlow,
+                  }}/>
+                : messageType === 'multipleChoice'
+                ? <MultipleChoiceFlow {...{
+                    responses,
+                    moveFlow,
+                    isAwaitingUserInput,
+                  }}/>
+                : <p className="text-center">（ ^_^）Thank you for your submission!（^_^ ）</p>
+              )}
             </div>
           </div>
         </div>

@@ -2,15 +2,19 @@ import { Dispatch, SetStateAction } from "react";
 import { Message } from '@/lib/models'
 
 export interface FlowChooserProps {
+  flowHeader: string,
   setMessageFeed: Dispatch<SetStateAction<Message[]>>;
   setFlowId: Dispatch<SetStateAction<number>>;
-  flowHeader: string,
+  setIsAwaitingUserInput: Dispatch<SetStateAction<boolean>>,
+  setQuery: Dispatch<SetStateAction<string>>;
 }
 
 export default function FlowChooser({
+  flowHeader,
   setMessageFeed,
   setFlowId,
-  flowHeader,
+  setIsAwaitingUserInput,
+  setQuery,
 }: FlowChooserProps) {
   return (
     <div className="flex sm:mx-auto sm:w-full sm:max-w-2xl justify-between items-center">
@@ -24,6 +28,8 @@ export default function FlowChooser({
           onChange={({ target }) => {
             setMessageFeed([])
             setFlowId(parseInt(target.value || '1', 10))
+            setIsAwaitingUserInput(true)
+            setQuery('')
           }}
         >
           <option>1</option>

@@ -3,34 +3,47 @@ import { Dispatch, SetStateAction } from "react"
 export interface TextFlowProps {
   query: string;
   isAwaitingUserInput: boolean;
-  setQuery: Dispatch<SetStateAction<string>>;
   moveFlow: any;
+  setQuery: Dispatch<SetStateAction<string>>;
 }
 
 export default function TextFlow({
   query,
-  setQuery,
-  moveFlow,
   isAwaitingUserInput,
+  moveFlow,
+  setQuery,
 }: TextFlowProps) {
   return (
-    <div className="h-16 flex gap-2 border-solid border border-slate-100 my-1 sm:rounded-lg">
-      <input
-        className="border rounded w-full h-full text-center focus:outline-none focus:shadow-outline text-3xl"
-        value={query}
-        disabled={!isAwaitingUserInput}
-        onChange={({ target }) => setQuery(target.value)}
-        onKeyDown={({ key }) => key === 'Enter' && moveFlow()}
-        placeholder="Send message"
-      />
+    <div className="flex g-4 w-fill justify-center space-x-2 rounded-xl bg-gray-200 p-2">
+      {isAwaitingUserInput
+        ? <>
+            <input
+              className="border rounded w-full h-full text-center focus:outline-none focus:shadow-outline text-3xl sm:rounded-lg"
+              value={query}
+              disabled={!isAwaitingUserInput}
+              onChange={({ target }) => setQuery(target.value)}
+              onKeyDown={({ key }) => key === 'Enter' && moveFlow(query) && setQuery('')}
+              placeholder="Reply here :)"
+            />
 
-      <button
-        className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700"
-        onKeyDown={({ key }) => key === 'Enter' && setQuery('')}
-        onClick={() => setQuery('')}
-      >
-        Clear
-      </button>
+            <button
+              className="bg-green-500 text-white font-bold py-2 px-4 rounded hover:bg-green-700 sm:rounded-lg"
+              onKeyDown={({ key }) => key === 'Enter' && moveFlow(query) && setQuery('')}
+              onClick={() => query && moveFlow(query) && setQuery('')}
+            >
+              Submit
+            </button>
+
+            <button
+              className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 sm:rounded-lg"
+              onKeyDown={({ key }) => key === 'Enter' && setQuery('')}
+              onClick={() => setQuery('')}
+            >
+              Clear
+            </button>
+          </>
+        : <span>Already answered</span>
+      }
     </div>
   );
 }
