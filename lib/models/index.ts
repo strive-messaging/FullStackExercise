@@ -49,18 +49,53 @@ export interface User {
 export interface Message {
   message: string;
   type?: string;
+  responses?: any[];
+  isMemberInput?: boolean;
 }
 
 // Flows Array
 // Normally this would be in a database, but is just here for convenience.
+// email
+// phoneNumber
+// isSubscribed
 export const FLOWS: Flow[] = [
   {
     id: 1,
-    name: 'Hello World Flow',
+    name: 'New Member Flow',
     definition: [
       {
+        type: 'getInfo',
+        message: 'What is your name?',
+        key: 'name',
+      },
+      {
         type: 'message',
-        message: 'hello',
+        message: 'Thank you for sending in your name!',
+      },
+      {
+        type: 'getInfo',
+        message: 'What is your email?',
+        key: 'email',
+      },
+      {
+        type: 'message',
+        message: 'Thank you for sending in your email!',
+      },
+      {
+        type: 'multipleChoice',
+        message: 'Subscribe for updates?',
+        responses: [
+          {
+            value: 'Yes, please omg',
+            message: 'Thanks for subscribing!',
+            synonyms: [],
+          },
+          {
+            value: 'Never in a million years',
+            message: 'A simple "no" would\'ve sufficed..',
+            synonyms: [],
+          },
+        ],
       },
     ],
   },

@@ -1,3 +1,4 @@
+import { Message } from "@/lib/models";
 import { Dispatch, SetStateAction } from "react"
 
 export interface TextFlowProps {
@@ -5,6 +6,7 @@ export interface TextFlowProps {
   isAwaitingUserInput: boolean;
   moveFlow: any;
   setQuery: Dispatch<SetStateAction<string>>;
+  setMessageFeed: Dispatch<SetStateAction<Message[]>>;
 }
 
 export default function TextFlow({
@@ -12,7 +14,15 @@ export default function TextFlow({
   isAwaitingUserInput,
   moveFlow,
   setQuery,
+  setMessageFeed,
 }: TextFlowProps) {
+
+  const addToMessageFeed = (message: string) => {
+    setMessageFeed(oldState => [...oldState, { message, isMemberInput: true }])
+    moveFlow()
+    setQuery('')
+  }
+
   return (
     <div className="flex g-4 w-fill justify-center space-x-2 rounded-xl bg-gray-200 p-2">
       {isAwaitingUserInput
@@ -22,14 +32,14 @@ export default function TextFlow({
               value={query}
               disabled={!isAwaitingUserInput}
               onChange={({ target }) => setQuery(target.value)}
-              onKeyDown={({ key }) => key === 'Enter' && moveFlow(query) && setQuery('')}
+              onKeyDown={({ key }) => key === 'Enter' && addToMessageFeed(query)}
               placeholder="Reply here :)"
             />
 
             <button
               className="bg-green-500 text-white font-bold py-2 px-4 rounded hover:bg-green-700 sm:rounded-lg"
-              onKeyDown={({ key }) => key === 'Enter' && moveFlow(query) && setQuery('')}
-              onClick={() => query && moveFlow(query) && setQuery('')}
+              onKeyDown={({ key }) => key === 'Enter' && addToMessageFeed(query)}
+              onClick={() => query && addToMessageFeed(query)}
             >
               Submit
             </button>

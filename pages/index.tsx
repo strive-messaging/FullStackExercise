@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { FlowResult } from '@/types/form'
-import { Message } from '@/lib/models'
+import { Message, Member } from '@/lib/models'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import FlowChooser from '@/components/FlowChooser'
@@ -8,7 +8,13 @@ import MessageFeed from '@/components/MessageFeed'
 import TextFlow from '@/components/TextFlow'
 import MultipleChoiceFlow from '@/components/MultipleChoiceFlow'
 
-async function simulateFlow(flowId: number, member: any, message: string) {
+export interface SimulateResponse {
+  member: Member;
+  messages: Message[];
+  stopIndex: number;
+}
+
+export async function simulateFlow(flowId: number, member: Member, startIndex: number): Promise<SimulateResponse> {
   const res = await fetch(`/api/flows/${flowId}/simulate`, {
     method: 'POST',
     headers: {
@@ -16,14 +22,13 @@ async function simulateFlow(flowId: number, member: any, message: string) {
     },
     body: JSON.stringify({
       member,
-      message,
-      startIndex: 0,
+      startIndex,
     }),
   })
   return res.json()
 }
 
-async function initFlow(flowId: number, member: any) {
+export async function initFlow(flowId: number, member: Member) {
   const res = await fetch(`/api/flows/${flowId}/${member.id || 0}`, {
     method: 'GET',
     headers: {
@@ -39,28 +44,31 @@ export default function Home() {
   const [query, setQuery] = useState('')
   const [scriptedMessages, setScriptedMessages] = useState([] as Message[])
   const [messageFeed, setMessageFeed] = useState([] as Message[])
-  const [currentIndex, setCurrentIndex] = useState(1)
-  const [lastIndex, setLastIndex] = useState(1)
+  const [cursorIndex, setCursorIndex] = useState(0)
   const [isAwaitingUserInput, setIsAwaitingUserInput] = useState(true)
 
-  const moveFlow = (message: string) => {
-    setMessageFeed(oldState => [...oldState, { message } as unknown as Message])
+  const moveFlow = async () => {
+    const { messages, stopIndex } = await simulateFlow(flowId, {} as unknown as Member, cursorIndex)
+    const isFinalMessageFlow = !(messages?.length <= 1 || messages.every(({ type }) => type === 'message'))
+    setIsAwaitingUserInput(isFinalMessageFlow)
 
-    if (currentIndex === lastIndex)
-      setIsAwaitingUserInput(false)
-    else setCurrentIndex(currentIndex+1)
+    if (messages.length) {
+      setCursorIndex(stopIndex+1)
+      setScriptedMessages(oldState => [...oldState, ...messages])
+      setMessageFeed(oldState => [...oldState, ...messages])
+    }
   }
 
   useEffect(() => {
-    initFlow(flowId, {}).then(({
+    initFlow(flowId, {} as unknown as Member).then(({
       flowName,
       messages,
-      stopIndex
+      stopIndex,
     }: FlowResult) => {
       setFlowHeader(flowName)
-      setLastIndex(stopIndex)
       setScriptedMessages(messages)
       setMessageFeed(messages)
+      setCursorIndex(stopIndex+1)
     })
   }, [flowId])
 
@@ -82,29 +90,29 @@ export default function Home() {
             setQuery,
           }}/>
 
-          <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-2xl">
+          <div className="flex flex-col flex-grow justify-between mt-8 sm:mx-auto sm:w-full sm:max-w-2xl">
             <MessageFeed {...{
               messageFeed,
               scriptedMessages,
-              currentIndex,
-              lastIndex,
               isAwaitingUserInput,
             }}/>
 
-            <div className="h-24 mt-4">
-              { messageFeed.length && (
+            <div className="h-24 mt-4 flex-grow">
+              { messageFeed.length && isAwaitingUserInput && (
                 messageType === 'message'|| messageType === 'getInfo'
                 ? <TextFlow {...{
                     query,
                     isAwaitingUserInput,
                     setQuery,
                     moveFlow,
+                    setMessageFeed,
                   }}/>
                 : messageType === 'multipleChoice'
                 ? <MultipleChoiceFlow {...{
                     responses,
                     moveFlow,
                     isAwaitingUserInput,
+                    setMessageFeed,
                   }}/>
                 : <p className="text-center">（ ^_^）Thank you for your submission!（^_^ ）</p>
               )}
