@@ -2,7 +2,12 @@ import Head from 'next/head'
 import Image from 'next/image'
 import Link from 'next/link'
 
-export default function Header() {
+export interface HeaderProps {
+  pageName: string;
+  url: string;
+}
+
+export default function Header({ pageName, url }: HeaderProps) {
   return (
     <>
       <Head>
@@ -10,7 +15,7 @@ export default function Header() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <header className="p-4 bg-teal-100">
+      <header className="flex justify-between items-center p-4 bg-teal-100">
         <Link href="/">
           <Image
             src="/strive.svg"
@@ -20,6 +25,8 @@ export default function Header() {
             priority
           />
         </Link>
+
+        <Link href={url}>{pageName}</Link>
       </header>
     </>
   );

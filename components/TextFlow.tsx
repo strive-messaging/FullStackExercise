@@ -30,16 +30,16 @@ export default function TextFlow({
             <input
               className="border rounded w-full h-full text-center focus:outline-none focus:shadow-outline text-3xl sm:rounded-lg"
               value={query}
-              disabled={!isAwaitingUserInput}
               onChange={({ target }) => setQuery(target.value)}
               onKeyDown={({ key }) => key === 'Enter' && addToMessageFeed(query)}
               placeholder="Reply here :)"
             />
 
             <button
-              className="bg-green-500 text-white font-bold py-2 px-4 rounded hover:bg-green-700 sm:rounded-lg"
+              className="bg-green-500 text-white font-bold py-2 px-4 rounded hover:bg-green-700 sm:rounded-lg disabled:hover:bg-green-500 disabled:opacity-50"
               onKeyDown={({ key }) => key === 'Enter' && addToMessageFeed(query)}
               onClick={() => query && addToMessageFeed(query)}
+              disabled={!query}
             >
               Submit
             </button>

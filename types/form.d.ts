@@ -13,7 +13,8 @@ export interface FieldDefinition {
 }
 
 export interface FlowResult {
-  flowName: string;
+  flowName?: string;
   messages: Message[];
   stopIndex: number;
+  member: Member;
 }

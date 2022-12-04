@@ -8,13 +8,7 @@ import MessageFeed from '@/components/MessageFeed'
 import TextFlow from '@/components/TextFlow'
 import MultipleChoiceFlow from '@/components/MultipleChoiceFlow'
 
-export interface SimulateResponse {
-  member: Member;
-  messages: Message[];
-  stopIndex: number;
-}
-
-export async function simulateFlow(flowId: number, member: Member, startIndex: number): Promise<SimulateResponse> {
+export async function simulateFlow(flowId: number, member: Member, startIndex: number): Promise<FlowResult> {
   const res = await fetch(`/api/flows/${flowId}/simulate`, {
     method: 'POST',
     headers: {
@@ -28,7 +22,7 @@ export async function simulateFlow(flowId: number, member: Member, startIndex: n
   return res.json()
 }
 
-export async function initFlow(flowId: number, member: Member) {
+export async function initFlow(flowId: number, member: Member): Promise<FlowResult> {
   const res = await fetch(`/api/flows/${flowId}/${member.id || 0}`, {
     method: 'GET',
     headers: {
@@ -46,11 +40,12 @@ export default function Home() {
   const [messageFeed, setMessageFeed] = useState([] as Message[])
   const [cursorIndex, setCursorIndex] = useState(0)
   const [isAwaitingUserInput, setIsAwaitingUserInput] = useState(true)
+  const [member, setMember] = useState({name: 'guest', isSubscribed: false} as unknown as Member)
 
   const moveFlow = async () => {
     const { messages, stopIndex } = await simulateFlow(flowId, {} as unknown as Member, cursorIndex)
-    const isFinalMessageFlow = !(messages?.length <= 1 || messages.every(({ type }) => type === 'message'))
-    setIsAwaitingUserInput(isFinalMessageFlow)
+    const isFinalMessage = !(messages?.length <= 1 || messages.every(({ type }) => type === 'message'))
+    setIsAwaitingUserInput(isFinalMessage)
 
     if (messages.length) {
       setCursorIndex(stopIndex+1)
@@ -65,7 +60,7 @@ export default function Home() {
       messages,
       stopIndex,
     }: FlowResult) => {
-      setFlowHeader(flowName)
+      setFlowHeader(flowName as string)
       setScriptedMessages(messages)
       setMessageFeed(messages)
       setCursorIndex(stopIndex+1)
@@ -78,7 +73,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
-      <Header />
+      <Header pageName="Members" url="/members"/>
 
       <main className="h-full bg-gray-50">
         <div className="flex min-h-full flex-col py-12 sm:px-6 lg:px-8">
