@@ -21,7 +21,7 @@ export default function MultipleChoiceFlow({
       { message: userResponse, isMemberInput: true },
       { message },
     ])
-    moveFlow()
+    moveFlow(userResponse)
   }
 
   return (

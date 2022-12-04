@@ -18,7 +18,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     member as unknown as Member,
     flow as Flow,
     startIndex,
-    message
+    message,
   )
 
   return res.json(result)

@@ -25,11 +25,13 @@ export default function Members() {
       <Header pageName="Home" url="/"/>
 
       <main className="h-full bg-gray-50">
-        <h1 className="text-4xl font-bold tracking-tight text-gray-900 text-center m-4">
-          Member List
-        </h1>
+        <div className="flex min-h-full flex-col py-12 sm:px-6 lg:px-8">
+          <div className="flex flex-col flex-grow mt-8 sm:mx-auto sm:w-full sm:max-w-2xl">
 
-        <div className="text-center">
+          <h1 className="text-4xl font-bold tracking-tight text-gray-900 text-center m-4">
+            Member List
+          </h1>
+
           {memberList.length
             ? memberList.map(({
                 name,
@@ -37,15 +39,16 @@ export default function Members() {
                 phoneNumber,
                 isSubscribed,
               }, i) =>
-                <div key={i}>
-                  <span>{name}</span>
-                  <span>{email}</span>
-                  <span>{phoneNumber}</span>
-                  <span>{isSubscribed}</span>
+                <div key={i} className="flex justify-between">
+                  <div>Name: {name}</div>
+                  <div>Email: {email}</div>
+                  <div>PhoneNumber: {phoneNumber ?? 'n/a'}</div>
+                  <div>IsSubscribed: {isSubscribed ? 'Yep' : 'Nope'}</div>
                 </div>
               )
-            : <span>No Members</span>
+            : <span className='text-center'>No Members</span>
           }
+          </div>
         </div>
       </main>
 

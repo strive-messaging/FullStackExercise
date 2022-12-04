@@ -8,7 +8,19 @@ import MessageFeed from '@/components/MessageFeed'
 import TextFlow from '@/components/TextFlow'
 import MultipleChoiceFlow from '@/components/MultipleChoiceFlow'
 
-export async function simulateFlow(flowId: number, member: Member, startIndex: number): Promise<FlowResult> {
+export interface SimulateFlowParams {
+  flowId: number;
+  member: Member;
+  startIndex: number;
+  message: string;
+}
+
+export async function simulateFlow({
+  flowId,
+  member,
+  startIndex,
+  message,
+}: SimulateFlowParams): Promise<FlowResult> {
   const res = await fetch(`/api/flows/${flowId}/simulate`, {
     method: 'POST',
     headers: {
@@ -17,6 +29,7 @@ export async function simulateFlow(flowId: number, member: Member, startIndex: n
     body: JSON.stringify({
       member,
       startIndex,
+      message,
     }),
   })
   return res.json()
@@ -42,10 +55,21 @@ export default function Home() {
   const [isAwaitingUserInput, setIsAwaitingUserInput] = useState(true)
   const [member, setMember] = useState({name: 'guest', isSubscribed: false} as unknown as Member)
 
-  const moveFlow = async () => {
-    const { messages, stopIndex } = await simulateFlow(flowId, {} as unknown as Member, cursorIndex)
+  const moveFlow = async (message: string) => {
+    const {
+      messages,
+      stopIndex,
+      member: memberData,
+    } = await simulateFlow({
+      flowId,
+      member,
+      startIndex: cursorIndex,
+      message,
+    })
     const isFinalMessage = !(messages?.length <= 1 || messages.every(({ type }) => type === 'message'))
+
     setIsAwaitingUserInput(isFinalMessage)
+    setMember(memberData)
 
     if (messages.length) {
       setCursorIndex(stopIndex+1)

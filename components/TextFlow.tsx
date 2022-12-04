@@ -19,7 +19,7 @@ export default function TextFlow({
 
   const addToMessageFeed = (message: string) => {
     setMessageFeed(oldState => [...oldState, { message, isMemberInput: true }])
-    moveFlow()
+    moveFlow(message)
     setQuery('')
   }
 

@@ -5,27 +5,29 @@
 export interface Flow {
   id: number;
   name: string;
-  definition: FlowAction[]
+  definition: FlowAction[];
 }
 
 export interface FlowMessageAction {
-  type: 'message'
-  message: string
+  type: 'message';
+  message: string;
+  key?: keyof Member;
 }
 
 export interface FlowGetInfoAction {
-  type: 'getInfo',
-  message: string,
-  key: keyof Member
+  type: 'getInfo';
+  message: string;
+  key: keyof Member;
 }
 
 export interface FlowMultipleChoiceAction {
   type: 'multipleChoice';
   message: string;
+  key?: keyof Member;
   responses: {
-    value: string
-    message: string
-    synonyms: string[]
+    value: string;
+    message: string;
+    synonyms: string[];
   }[]
 }
 
@@ -37,6 +39,7 @@ export interface Member {
   email: string;
   phoneNumber: string;
   isSubscribed: boolean;
+  favoriteColor: string;
 }
 
 export interface User {
@@ -53,11 +56,6 @@ export interface Message {
   isMemberInput?: boolean;
 }
 
-// Flows Array
-// Normally this would be in a database, but is just here for convenience.
-// email
-// phoneNumber
-// isSubscribed
 export const FLOWS: Flow[] = [
   {
     id: 1,
@@ -84,6 +82,7 @@ export const FLOWS: Flow[] = [
       {
         type: 'multipleChoice',
         message: 'Subscribe for updates?',
+        key: 'isSubscribed',
         responses: [
           {
             value: 'Yes, please omg',
@@ -96,6 +95,10 @@ export const FLOWS: Flow[] = [
             synonyms: [],
           },
         ],
+      },
+      {
+        type: 'message',
+        message: 'Thank you for signing up!',
       },
     ],
   },
@@ -110,6 +113,7 @@ export const FLOWS: Flow[] = [
       {
         type: 'multipleChoice',
         message: 'What is your favorite color?',
+        key: 'favoriteColor',
         responses: [
           {
             value: 'red',
@@ -147,5 +151,5 @@ export const FLOWS: Flow[] = [
   },
 ]
 
-export const MEMBERS: Member[] = [
+export const MEMBERS: Partial<Member>[] = [
 ]
