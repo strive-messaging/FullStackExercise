@@ -39,6 +39,10 @@ export interface Member {
   isSubscribed: boolean;
 }
 
+export interface MemberMessage {
+  message: string
+}
+
 export interface User {
   id: number;
   email: string;
