@@ -10,7 +10,7 @@ import { getMemberByPhoneNumber, updateMemberKey } from '../models/database'
 /**
  * Get the next set of messages until there is a request for the member.
  */
-export async function getMessages(member: Member, flow: Flow, defaultMessage: string = '') {
+export async function getMessages(member: Member, flow: Flow, defaultMessage = '') {
   // find what stage of a flow the member is in.
   const cachedFlow = await getCachedFlow(member, flow)
 
@@ -44,7 +44,10 @@ export async function getMessages(member: Member, flow: Flow, defaultMessage: st
   })
 
   // update cached flow
-  const cacheEntry = await updateFlowCache(member, flow, stopIndex, isResponseRequest)
+  const cacheEntry = await updateFlowCache(member, flow, {
+    currentIndex: stopIndex,
+    isResponseRequest,
+  })
 
   return { cacheEntry, messages, startIndex, stopIndex }
 }
@@ -97,7 +100,7 @@ export async function handleMemberResponse(
 ) {
   const flowStep = flow.definition[startIndex]
 
-  let responseMessage: string = ''
+  let responseMessage = ''
   if (flowStep.type === 'getInfo') {
     responseMessage = await handleGetInfo(flowStep, message, member, flow, cacheEntry)
   } else if (flowStep.type === 'multipleChoice') {
@@ -121,7 +124,10 @@ async function handleGetInfo(
   await updateMemberKey(member.id, flowStep.key, message)
 
   // update cache
-  await updateFlowCache(member, flow, cacheEntry.currentIndex + 1, false)
+  await updateFlowCache(member, flow, {
+    currentIndex: cacheEntry.currentIndex + 1,
+    isResponseRequest: false,
+  })
 
   // return response
   return flowStep.response
@@ -139,7 +145,10 @@ async function handleMultipleChoice(
   })
   if (match) {
     // update cache
-    await updateFlowCache(member as Member, flow, cacheEntry.currentIndex + 1, false)
+    await updateFlowCache(member, flow, {
+      currentIndex: cacheEntry.currentIndex + 1,
+      isResponseRequest: false,
+    })
     return match.message
   }
 

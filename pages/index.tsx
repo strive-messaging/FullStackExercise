@@ -1,29 +1,35 @@
 import Head from 'next/head'
 import { MemberMessage } from '../lib/models'
-import { ChangeEvent, KeyboardEvent, useEffect, useRef, useState } from 'react'
+import {
+  ChangeEvent,
+  KeyboardEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 
-async function simulateFlow(
-  flowId: number,
-  phoneNumber: string,
-  message: string,
-  resetSimulator: boolean = false
-) {
+interface SimulatePayload {
+  phoneNumber: string
+  message: string
+  resetSimulator: boolean
+}
+
+async function simulateFlow(flowId: number, payload: SimulatePayload) {
   const res = await fetch(`/api/flows/${flowId}/simulate`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      phoneNumber,
-      message,
-      resetSimulator,
-    }),
+    body: JSON.stringify(payload),
   })
 
-  // if flow or member are not known.
   if (res.ok) {
     const data = await res.json()
     return data
+  } else {
+    return
   }
 }
 
@@ -34,10 +40,12 @@ export default function Home() {
   const phoneNumber = '406-570-3068'
 
   // Initial message from user initiating flow.
-  const initialMessage: MemberMessage = {
-    message: `[${phoneNumber}] initiates flow ${flowId}; Waiting for response...`,
-    isMember: true,
-  }
+  const initialMessage: MemberMessage = useMemo(() => {
+    return {
+      message: `[${phoneNumber}] initiates flow ${flowId}; Waiting for response...`,
+      isMember: true,
+    }
+  }, [flowId])
 
   // This format provided for convenience. Please change if necessary.
   const [messages, setMessages] = useState([initialMessage] as MemberMessage[])
@@ -52,7 +60,7 @@ export default function Home() {
   }
 
   // Handles adding the messages from a response. Converts the strings from server to MemberMessages.
-  const handleFlowResponse = (data: any) => {
+  const handleFlowResponse = useCallback((data: any) => {
     if (data?.messages && Array.isArray(data.messages)) {
       const serverMessages = data.messages.map((message: string) => {
         return {
@@ -60,23 +68,37 @@ export default function Home() {
           isMember: false,
         }
       })
-
       addMessages(serverMessages)
     }
-  }
+  }, [])
 
-  // initiate a new flow when flowId changes.
-  useEffect(() => {
-    // member initiates new flow with message.
+  // memoizing
+  const resetMessage = useCallback(() => {
     setMessages(() => [initialMessage])
+  }, [initialMessage])
+
+  // memoizing
+  const onFlowChange = useCallback(() => {
+    // member initiates new flow with message.
+    resetMessage()
 
     // submit request to the api
-    simulateFlow(flowId, phoneNumber, '', true).then((data: object) => {
+    const payload: SimulatePayload = {
+      phoneNumber,
+      message: '',
+      resetSimulator: true,
+    }
+    simulateFlow(flowId, payload).then((data: object) => {
       if (!data) return
 
       handleFlowResponse(data)
     })
-  }, [flowId])
+  }, [flowId, resetMessage, handleFlowResponse])
+
+  // initiate a new flow when flowId changes.
+  useEffect(() => {
+    onFlowChange()
+  }, [onFlowChange])
 
   // light hack to scroll to bottom if messages start to scroll.
   const scrollToBottomRef = useRef<null | HTMLDivElement>(null)
@@ -108,7 +130,12 @@ export default function Home() {
       setMemberMessage(initialMemberMessage)
 
       // submit message to api endpoint
-      simulateFlow(flowId, phoneNumber, memberMessage.message).then((data: object) => {
+      const payload: SimulatePayload = {
+        phoneNumber,
+        message: memberMessage.message,
+        resetSimulator: false,
+      }
+      simulateFlow(flowId, payload).then((data: object) => {
         if (!data) return
 
         // update messages by response.

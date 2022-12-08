@@ -29,24 +29,24 @@ export const emptyFlowCache = () => {
   FAKE_FLOW_CACHE = []
 }
 
-export const updateFlowCache = async (
-  member: Member,
-  flow: Flow,
-  stopIndex: number,
+export interface FlowCacheProps {
+  currentIndex: number
   isResponseRequest: boolean
-) => {
+}
+
+export const updateFlowCache = async (member: Member, flow: Flow, props: FlowCacheProps) => {
   const cachedFlowIndex = await getCachedFlowIndex(member, flow)
   if (cachedFlowIndex !== -1) {
-    if (flow.definition.length <= stopIndex) {
+    if (flow.definition.length <= props.currentIndex) {
       // I would assume that the cache would naturally expire at some point.
-      FAKE_FLOW_CACHE[cachedFlowIndex].currentIndex = stopIndex
+      FAKE_FLOW_CACHE[cachedFlowIndex].currentIndex = props.currentIndex
       return FAKE_FLOW_CACHE[cachedFlowIndex]
     } else {
       // update flow to next step.
-      FAKE_FLOW_CACHE[cachedFlowIndex].currentIndex = stopIndex
+      FAKE_FLOW_CACHE[cachedFlowIndex].currentIndex = props.currentIndex
 
       // update response expectation.
-      FAKE_FLOW_CACHE[cachedFlowIndex].isResponseRequest = isResponseRequest
+      FAKE_FLOW_CACHE[cachedFlowIndex].isResponseRequest = props.isResponseRequest
 
       return FAKE_FLOW_CACHE[cachedFlowIndex]
     }
@@ -54,8 +54,8 @@ export const updateFlowCache = async (
     const entry: FlowCacheEntry = {
       memberId: member.id,
       flowId: flow.id,
-      currentIndex: stopIndex,
-      isResponseRequest,
+      currentIndex: props.currentIndex,
+      isResponseRequest: props.isResponseRequest,
     }
     // insert entry
     FAKE_FLOW_CACHE.push(entry)

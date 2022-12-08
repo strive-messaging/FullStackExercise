@@ -11,7 +11,7 @@ const randomPause = async () => {
   const max = 1500
   const min = 500
   const delayFor = Math.floor(Math.random() * (max - min) + min)
-  return new Promise(function (resolve) {
+  return new Promise((resolve) => {
     setTimeout(resolve, delayFor)
   })
 }
