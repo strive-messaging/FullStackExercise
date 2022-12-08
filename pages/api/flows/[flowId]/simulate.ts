@@ -1,6 +1,20 @@
-import { init, receiveMessage } from '@/lib/flows/machine'
+import { init, buildResponse } from '@/lib/flows/machine'
 import { Flow, FLOWS, Member } from '@/lib/models'
 import { NextApiRequest, NextApiResponse } from 'next'
+
+/**
+ * Used to randomly pause a response between 500 - 1500 milliseconds.
+ *
+ * @returns {Promise}
+ */
+const randomPause = async () => {
+  const max = 1500
+  const min = 500
+  const delayFor = Math.floor(Math.random() * (max - min) + min)
+  return new Promise(function (resolve) {
+    setTimeout(resolve, delayFor)
+  })
+}
 
 // Flow Simulation Endpoint
 // By making a series of requests to this endpoint, please simulate the back-and-forth
@@ -14,19 +28,21 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     res.status(404).end()
   }
 
-  const { member, message, startIndex = 0 } = req.body
+  // removed startIndex and full member object.
+  const { phoneNumber, message, resetSimulator } = req.body
 
-  // CHALLENGE ZONE:
-  // Please do something here to allow simulation of interaction with the flow!
-  // const y = init(?)
-  // const x = receiveMessage(?)
+  // initialize flow and look up member.
+  const { member } = await init(phoneNumber, flow as Flow, resetSimulator)
+  // this is just a placeholder to handle if the member isn't recognized.
+  if (!member) {
+    res.status(200).json({ messages: ['unknown number'] })
+  }
 
-  const result = await receiveMessage(
-    member as unknown as Member,
-    flow as Flow,
-    startIndex,
-    message
-  )
-  console.warn(result)
-  return res.json({ ok: true })
+  // build messages
+  const response = await buildResponse(message, member as Member, flow as Flow)
+
+  // delay response to simulate response time.
+  await randomPause()
+
+  return res.status(200).json({ messages: response.messages })
 }
