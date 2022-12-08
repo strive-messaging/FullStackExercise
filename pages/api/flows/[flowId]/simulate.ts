@@ -14,12 +14,9 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     res.status(404).end()
   }
 
-  const { member, message, startIndex = 0 } = req.body
+  //await init('???', flow)
 
-  // CHALLENGE ZONE:
-  // Please do something here to allow simulation of interaction with the flow!
-  // const y = init(?)
-  // const x = receiveMessage(?)
+  const { member, message, startIndex = 0 } = req.body
 
   const result = await receiveMessage(
     member as unknown as Member,
@@ -28,5 +25,5 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     message
   )
   console.warn(result)
-  return res.json({ ok: true })
+  return res.json(result)
 }
