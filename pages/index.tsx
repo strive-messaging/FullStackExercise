@@ -16,22 +16,27 @@ async function simulateFlow(flowId: number, member: Member, message: string, ind
     body: JSON.stringify({
       member,
       message,
-      startIndex: 0,
+      startIndex: index,
     }),
   })
   return await res.json()
 }
 
 export default function Home() {
+  // member info
   const [memberName, setMemberName] = useState('')
   const [memberEmail, setMemberEmail] = useState('')
   const [memberPhoneNumber, setMemberPhoneNumber] = useState('')
   const [isSubscribed, setIsSubscribed] = useState(false)
 
+  // conversation info
   const [flowId, setFlowId] = useState(1)
   const [messages, setMessages] = useState([{ text: 'Welcome!', isUser: false }])
   const [currentMessage, setCurrentMessage] = useState('')
   const [index, setIndex] = useState(0)
+  
+  // used to prevent chat after flow ends
+  const [isChatDisabled, setIsChatDisabled] = useState(false)
 
   return (
     <div className="h-screen bg-gray-50">
@@ -54,7 +59,7 @@ export default function Home() {
             </p>
           </div>
           <div className="mt-8 mx-auto max-w-sm text-center">
-            First, tell us a little bit about yourself:
+            If you like, tell us a little bit about yourself:
             <br/>
             <br/>
             <input
@@ -114,6 +119,7 @@ export default function Home() {
                   onChange={(e) => setCurrentMessage(e.currentTarget.value)}
                   placeholder="Send message"
                   onKeyUp={(e) => {if (e.key === 'Enter') {sendMessage()} }}
+                  disabled={isChatDisabled}
                 />
               </div>
             </div>
@@ -127,6 +133,8 @@ export default function Home() {
     setFlowId(flowId)
     // reset the chat messages when user switches flows
     setMessages([{text: 'Welcome!', isUser: false}])
+    setIndex(0)
+    setIsChatDisabled(false)
   }
 
   async function sendMessage() {
@@ -138,6 +146,18 @@ export default function Home() {
       isSubscribed: isSubscribed
     }
     const response = await simulateFlow(flowId, member, currentMessage, index)
+
+    // once we've run out of responses, let them know the conversation is over
+    if (response.stopIndex <= index) {
+      setMessages([...messages, 
+        {text: currentMessage, isUser: true},
+        {text: 'Goodbye!', isUser: false}
+      ])
+      setCurrentMessage('')
+      setIsChatDisabled(true)
+      return;
+    }
+
     setMessages([...messages, 
       {text: currentMessage, isUser: true},
       {text: response.messages[0], isUser: false}
