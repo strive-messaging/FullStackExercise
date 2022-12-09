@@ -1,7 +1,20 @@
 import Head from 'next/head'
+import React, { useCallback, useEffect } from 'react'
 import { useState } from 'react'
 
-async function simulateFlow(flowId: number, member: any, message: string) {
+interface SimulateFlowRequestPayload {
+  flowId: number
+  member: any
+  message: string
+  startIndex: number
+}
+
+async function simulateFlow({
+  flowId,
+  member,
+  message,
+  startIndex = 0,
+}: SimulateFlowRequestPayload) {
   const res = await fetch(`/api/flows/${flowId}/simulate`, {
     method: 'POST',
     headers: {
@@ -10,7 +23,7 @@ async function simulateFlow(flowId: number, member: any, message: string) {
     body: JSON.stringify({
       member,
       message,
-      startIndex: 0,
+      startIndex,
     }),
   })
   return res
@@ -20,7 +33,52 @@ export default function Home() {
   const [flowId, setFlowId] = useState(1)
 
   // This format provided for convenience. Please change if necessary.
-  const [messages, setMessages] = useState([{ message: 'placeholder, remove me' }])
+  const [messages, setMessages] = useState<{ message: string }[]>([])
+  const [userMessage, setUserMessageText] = useState('')
+  const [startIndex, setStartIndex] = useState(0)
+
+  const startConversation = useCallback(async () => {
+    const response = await simulateFlow({ flowId, member: { id: 1 }, message: '', startIndex: 0 })
+    const data = await response.json()
+
+    setMessages((data.result.messages as string[]).map((message) => ({ message })))
+    setStartIndex(data.result.stopIndex)
+  }, [flowId])
+
+  useEffect(() => {
+    startConversation().catch(console.error)
+  }, [startConversation])
+
+  async function sendMessage() {
+    const optimisticallyUpdatedMessages = [...messages, { message: userMessage }]
+    setMessages(optimisticallyUpdatedMessages)
+    setUserMessageText('')
+
+    try {
+      const response = await simulateFlow({
+        flowId,
+        member: { id: 1 },
+        message: userMessage,
+        startIndex,
+      })
+      const data = await response.json()
+
+      setStartIndex(data.result.stopIndex)
+      setMessages([
+        ...optimisticallyUpdatedMessages,
+        ...(data.result.messages as string[]).map((message) => ({ message })),
+      ])
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  async function handleKeyPress(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key !== 'Enter' || userMessage.trim().length === 0) {
+      return
+    }
+    sendMessage()
+  }
 
   return (
     <div className="h-screen bg-gray-50">
@@ -69,7 +127,9 @@ export default function Home() {
               <div className="border-solid border border-slate-100 my-1">
                 <input
                   className="w-full"
-                  onChange={(e) => console.warn(e.target.value)}
+                  value={userMessage}
+                  onChange={(e) => setUserMessageText(e.target.value)}
+                  onKeyPress={(e) => handleKeyPress(e)}
                   placeholder="Send message"
                 />
               </div>

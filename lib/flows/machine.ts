@@ -4,12 +4,9 @@
 // Implements a cursor that advances across a flow definition
 // and processes inputs with actions
 
-import { Flow, Member } from "../models";
+import { Flow, Member } from '../models'
 
-export async function init(
-  member: Member,
-  flow: Flow
-) {
+export async function init(flow: Flow) {
   let stopIndex = 0
   const messages = []
   for (const action of flow.definition) {
@@ -36,11 +33,12 @@ export async function receiveMessage(
       break
     }
     // GetInfo: Save info in message to key in member
+    console.log('getting info: ', message)
     if (action.type === 'getInfo') {
-      (member[action.key] as any) = message
+      ;(member[action.key] as any) = message
     }
     if (action.type === 'multipleChoice') {
-      const match = action.responses.find(r => {
+      const match = action.responses.find((r) => {
         return r.value === message.trim() || r.synonyms.includes(message.trim())
       })
       if (match) {
