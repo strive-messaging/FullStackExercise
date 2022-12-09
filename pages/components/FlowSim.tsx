@@ -49,7 +49,6 @@ export default function FlowSim(props: Props) {
     }
 
     useEffect(() => {
-        console.log("change flow id");
         simulateFlow(props.flowId, member, "", 0)
             .then((res) => {
                 if (res.ok) {
