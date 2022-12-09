@@ -13,9 +13,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   if (!flow) {
     res.status(404).end()
   }
-
-  //const x = await init(req.body.member, flow!)
-
   const { member, message, startIndex = 0 } = req.body
 
   const result = await receiveMessage(
@@ -24,5 +21,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     startIndex,
     message
   )
+  //console.log(result)
   return res.json(result)
 }

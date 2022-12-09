@@ -105,7 +105,8 @@ export default function Home() {
 
           <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-2xl">
             <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-              <div className="border-solid border-2 border-indigo-600 h-64">
+              {/* note: does not autoscroll to bottom - stackoverflow suggestions using flexbox break the chat box vertical alignment, more fiddling required to make it work optimally */}
+              <div className="border-solid border-2 border-indigo-600 h-64 overflow-y-auto">
                 {messages.map((m, i) => (
                   <div key={i} className={`m-1 ${m.isUser ? 'user-message bg-slate-100' : 'bg-slate-200'}`}>
                     {m.text}
@@ -117,7 +118,7 @@ export default function Home() {
                   className="w-full"
                   value={currentMessage}
                   onChange={(e) => setCurrentMessage(e.currentTarget.value)}
-                  placeholder="Send message"
+                  placeholder={isChatDisabled ? 'Conversation over - pick a new flow' : 'Send message'}
                   onKeyUp={(e) => {if (e.key === 'Enter') {sendMessage()} }}
                   disabled={isChatDisabled}
                 />
@@ -146,9 +147,9 @@ export default function Home() {
       isSubscribed: isSubscribed
     }
     const response = await simulateFlow(flowId, member, currentMessage, index)
-
+    console.log(response)
     // once we've run out of responses, let them know the conversation is over
-    if (response.stopIndex <= index) {
+    if (response.messages.length === 0) {
       setMessages([...messages, 
         {text: currentMessage, isUser: true},
         {text: 'Goodbye!', isUser: false}
@@ -158,11 +159,14 @@ export default function Home() {
       return;
     }
 
-    setMessages([...messages, 
-      {text: currentMessage, isUser: true},
-      {text: response.messages[0], isUser: false}
-    ])
-    setIndex(index + 1)
+    const newMessages = [{text: currentMessage, isUser: true}];
+
+    (response.messages as string[]).forEach(msg => {
+      newMessages.push({text: msg, isUser: false})
+    })
+
+    setMessages([...messages, ...newMessages])
+    setIndex(response.stopIndex)
     setCurrentMessage('')
   }
 }
