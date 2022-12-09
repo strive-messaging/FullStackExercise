@@ -20,7 +20,7 @@ export async function init(flow: Flow) {
 }
 
 export async function receiveMessage(
-  member: Member,
+  member: Partial<Member>,
   flow: Flow,
   startIndex: number,
   message: string
@@ -33,7 +33,6 @@ export async function receiveMessage(
       break
     }
     // GetInfo: Save info in message to key in member
-    console.log('getting info: ', message)
     if (action.type === 'getInfo') {
       ;(member[action.key] as any) = message
     }
@@ -43,10 +42,12 @@ export async function receiveMessage(
       })
       if (match) {
         messages.push(match.message)
+      } else {
+        messages.push(`I didn't understand that. ${action.message}`)
+        index--
       }
     }
     index++
   }
-  console.warn({ messages, stopIndex: startIndex + index, member })
   return { messages, stopIndex: startIndex + index, member }
 }

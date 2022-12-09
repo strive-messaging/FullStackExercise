@@ -5,13 +5,13 @@ import { z } from 'zod'
 
 const simulateRequestSchema = z.object({
   member: z.object({
-    id: z.number(),
+    id: z.number().optional(),
     name: z.string().optional(),
     email: z.string().optional(),
     phoneNumber: z.string().optional(),
     isSubscribed: z.boolean().optional(),
   }),
-  message: z.string().optional(),
+  message: z.string(),
   startIndex: z.number(),
 })
 
@@ -29,6 +29,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 
   const simulateRequest = simulateRequestSchema.safeParse(req.body)
   if (!simulateRequest.success) {
+    console.error(simulateRequest.error)
     return res.status(500).end()
   }
 
@@ -43,11 +44,10 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     result = await init(flow)
   } else {
     // The user has replied to the flow
-    result = await receiveMessage(member as unknown as Member, flow as Flow, startIndex, message)
+    result = await receiveMessage(member, flow as Flow, startIndex, message)
     result.messages = filterToNewMessages(result.messages, flow, startIndex)
   }
 
-  console.warn(result)
   return res.json({
     ok: true,
     result,
