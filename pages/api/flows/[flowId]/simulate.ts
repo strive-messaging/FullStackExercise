@@ -15,12 +15,16 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   }
   const { member, message, startIndex = 0 } = req.body
 
+  if (startIndex === 0) {
+    const result = await init(member, flow as Flow)
+    return res.json(result)
+  }
+
   const result = await receiveMessage(
     member as unknown as Member,
     flow as Flow,
     startIndex,
     message
   )
-  //console.log(result)
   return res.json(result)
 }

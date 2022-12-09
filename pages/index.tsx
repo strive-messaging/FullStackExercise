@@ -147,7 +147,6 @@ export default function Home() {
       isSubscribed: isSubscribed
     }
     const response = await simulateFlow(flowId, member, currentMessage, index)
-    console.log(response)
     // once we've run out of responses, let them know the conversation is over
     if (response.messages.length === 0) {
       setMessages([...messages, 
