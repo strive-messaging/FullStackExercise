@@ -1,6 +1,7 @@
 import { init, receiveMessage } from '@/lib/flows/machine'
 import { Flow, FLOWS, Member } from '@/lib/models'
 import { NextApiRequest, NextApiResponse } from 'next'
+import { start } from 'repl'
 
 // Flow Simulation Endpoint
 // By making a series of requests to this endpoint, please simulate the back-and-forth
@@ -14,19 +15,18 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     res.status(404).end()
   }
 
-  const { member, message, startIndex = 0 } = req.body
+  const { member, message = '', startIndex = 0 } = req.body
 
-  // CHALLENGE ZONE:
-  // Please do something here to allow simulation of interaction with the flow!
-  // const y = init(?)
-  // const x = receiveMessage(?)
+  if (message.length == 0) {
+    const { messages, stopIndex } = await init(member, flow!);
+    return res.json({ ok: true, messages, stopIndex });
+  }
 
-  const result = await receiveMessage(
+  const { messages, stopIndex } = await receiveMessage(
     member as unknown as Member,
     flow as Flow,
     startIndex,
     message
   )
-  console.warn(result)
-  return res.json({ ok: true })
+  return res.json({ ok: true, messages, stopIndex });
 }

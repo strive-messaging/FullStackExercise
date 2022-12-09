@@ -31,13 +31,13 @@ export async function receiveMessage(
   let index = 0
   const messages = []
   for (const action of flow.definition.slice(startIndex)) {
-    messages.push(action.message)
     if (index !== 0 && ['getInfo', 'multipleChoice'].includes(action.type)) {
       break
     }
     // GetInfo: Save info in message to key in member
     if (action.type === 'getInfo') {
       (member[action.key] as any) = message
+      messages.push(action.confirmMessage)
     }
     if (action.type === 'multipleChoice') {
       const match = action.responses.find(r => {
@@ -45,6 +45,8 @@ export async function receiveMessage(
       })
       if (match) {
         messages.push(match.message)
+      } else {
+        messages.push(`"${message.trim()}" is not in my color palette.`)
       }
     }
     index++

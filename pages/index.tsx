@@ -1,26 +1,9 @@
 import Head from 'next/head'
 import { useState } from 'react'
-
-async function simulateFlow(flowId: number, member: any, message: string) {
-  const res = await fetch(`/api/flows/${flowId}/simulate`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      member,
-      message,
-      startIndex: 0,
-    }),
-  })
-  return res
-}
+import FlowSim from './components/FlowSim';
 
 export default function Home() {
-  const [flowId, setFlowId] = useState(1)
-
-  // This format provided for convenience. Please change if necessary.
-  const [messages, setMessages] = useState([{ message: 'placeholder, remove me' }])
+  const [flowId, setFlowId] = useState(3)
 
   return (
     <div className="h-screen bg-gray-50">
@@ -56,25 +39,7 @@ export default function Home() {
               provided.
             </p>
           </div>
-
-          <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-2xl">
-            <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-              <div className="border-solid border-2 border-indigo-600 h-64">
-                {messages.map((m, i) => (
-                  <div key={i} className="m-1 bg-slate-200">
-                    {m.message}
-                  </div>
-                ))}
-              </div>
-              <div className="border-solid border border-slate-100 my-1">
-                <input
-                  className="w-full"
-                  onChange={(e) => console.warn(e.target.value)}
-                  placeholder="Send message"
-                />
-              </div>
-            </div>
-          </div>
+          <FlowSim flowId={flowId}></FlowSim>
         </div>
       </main>
     </div>
