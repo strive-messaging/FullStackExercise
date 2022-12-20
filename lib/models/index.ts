@@ -41,14 +41,13 @@ enum MemberData {
 
 const { id, name, email, phoneNumber, isSubscribed } = MemberData
 
-export type Member = {
+export interface Member {
   [id]: number;
   [name]: string;
   [email]: string;  
   [phoneNumber]: string;  
   [isSubscribed]: boolean;
 }
-
 
 export interface User {
   id: number;
@@ -57,7 +56,8 @@ export interface User {
   organizationId: number;
 }
 
-export const FLOW_END: string = 'EOF';
+export const FLOW_END = 'EOF';
+
 // Flows Array
 // Normally this would be in a database, but is just here for convenience.
 export const FLOWS: Flow[] = [

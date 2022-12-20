@@ -1,11 +1,18 @@
-import Head from 'next/head';
+import Head from 'next/head'
 import { useEffect, useRef, useState } from 'react'
 import { FLOWS, FLOW_END } from '@/lib/models'
 import { EOFMessage, MachineMessage, UserMessage } from '@/components/Message'
 import { PrimaryButton, SecondaryButton } from '@/components/Button'
 import type { Flow, Member } from '@/lib/models'
 
-async function simulateFlow(flowId: number, member: Member, message: string, startIndex: number = 0) {
+interface FlowParams {
+  flowId: number
+  member: Member
+  message?: string
+  startIndex?: number
+}
+
+const simulateFlow = async ({ flowId, member, message = '', startIndex = 0 }: FlowParams) => {
   const res = await fetch(`/api/flows/${flowId}/simulate`, {
     method: 'POST',
     headers: {
@@ -14,26 +21,26 @@ async function simulateFlow(flowId: number, member: Member, message: string, sta
     body: JSON.stringify({
       member,
       message,
-      startIndex
+      startIndex,
     }),
   })
-  const messages = await res.json();
-  return messages;
+  const messages = await res.json()
+  return messages
 }
 
-type Message = {
-  memberId: Member['id'],
+interface Message {
+  memberId: Member['id']
   text: string
 }
 
-type FlowState = {
-  startIndex: number,
+interface FlowState {
+  startIndex: number
   messages: Message[]
 }
 
 const emptyFlow: FlowState = {
   startIndex: 0,
-  messages: []
+  messages: [],
 }
 
 const member: Member = {
@@ -41,33 +48,36 @@ const member: Member = {
   name: '',
   email: '',
   phoneNumber: '',
-  isSubscribed: false
-};
+  isSubscribed: false,
+}
 
 export default function Home() {
-  const [flowId, setFlowId] = useState(0);
-  const [flowState, updateFlow] = useState<FlowState>(emptyFlow);
-  const [userMessage, setUserMessage] = useState('');
-  const endMarker = useRef<HTMLDivElement>(null);
+  const [flowId, setFlowId] = useState(0)
+  const [flowState, updateFlow] = useState<FlowState>(emptyFlow)
+  const [userMessage, setUserMessage] = useState('')
+  const endMarker = useRef<HTMLDivElement>(null)
 
-  const isActiveFlow = flowId !== 0;
+  const isActiveFlow = flowId !== 0
 
   const sendUserMessage = () => {
-    simulateFlow(flowId, member, userMessage, flowState.startIndex)
-    .then(result => {
-      const { ok, messages, stopIndex } = result;
-      if (ok) {
-        updateFlow({
-          startIndex: stopIndex,
-          messages: [...[...flowState.messages, { memberId: member.id, text: userMessage }, ...messages]]
-        })
-        setUserMessage('')
+    simulateFlow({ flowId, member, message: userMessage, startIndex: flowState.startIndex }).then(
+      (result) => {
+        const { ok, messages, stopIndex } = result
+        if (ok) {
+          updateFlow({
+            startIndex: stopIndex,
+            messages: [
+              ...[...flowState.messages, { memberId: member.id, text: userMessage }, ...messages],
+            ],
+          })
+          setUserMessage('')
+        }
       }
-    });
+    )
   }
 
-  useEffect(()=> {
-    endMarker.current && endMarker.current.scrollIntoView({ behavior: "smooth" })
+  useEffect(() => {
+    endMarker?.current?.scrollIntoView({ behavior: 'smooth' })
   }, [flowState.messages])
 
   return (
@@ -81,13 +91,13 @@ export default function Home() {
         <div className="flex min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8">
           <div className="sm:mx-auto sm:w-full sm:max-w-md">
             <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-               &quot;Flow Simulator&quot;
+              &quot;Flow Simulator&quot;
             </h2>
             <div className="mt-2 text-center text-sm text-gray-600">
               <div>
-              <p className="mt-2 text-center text-sm text-gray-600">
-                We have couple topics to chat about. Feel free to choose another one any time.
-              </p>          
+                <p className="mt-2 text-center text-sm text-gray-600">
+                  We have couple topics to chat about. Feel free to choose another one any time.
+                </p>
               </div>
             </div>
           </div>
@@ -95,46 +105,50 @@ export default function Home() {
             <select
               className="border mx-auto border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
               onChange={(e) => {
-                const fId = parseInt(e.target.value, 10);
-                setFlowId(fId);
+                const fId = parseInt(e.target.value, 10)
+                setFlowId(fId)
 
-                if (fId > 0) { 
-                  simulateFlow(fId, member, '', 0).then(data => {
-                    const { ok, messages, stopIndex } = data;
+                if (fId > 0) {
+                  simulateFlow({ flowId: fId, member }).then((data) => {
+                    const { ok, messages, stopIndex } = data
                     if (ok) {
                       updateFlow({
                         startIndex: stopIndex,
-                        messages
-                      });
+                        messages,
+                      })
                     }
                   })
                 } else {
-                  updateFlow(emptyFlow);
+                  updateFlow(emptyFlow)
                 }
-              }
-              }
+              }}
             >
               <option value="0">Please select desired flow</option>
-              {
-                FLOWS.map((flow: Flow) => {
-                  const { id, name } = flow;
-                  return <option value={id} key={id}>{name}</option>
-                })
-              }
+              {FLOWS.map((flow: Flow) => {
+                const { id, name } = flow
+                return (
+                  <option value={id} key={id}>
+                    {name}
+                  </option>
+                )
+              })}
             </select>
           </div>
 
           <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-2xl">
             <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
               <div className="border-solid border-2 border-indigo-600 h-64 overflow-y-scroll">
-                {
-                  flowState.messages.map((msg: Message, idx: number) => {
-                    const { memberId, text } = msg;
-                    const key = `${memberId}-${idx}`;
-                    return memberId === member.id ? <UserMessage key={key}>{text}</UserMessage>
-                    : text === FLOW_END ? <EOFMessage key={key}>thanks for your messages, this flow is ended</EOFMessage> : <MachineMessage key={key}>{text}</MachineMessage>
-                  })
-                }
+                {flowState.messages.map((msg: Message, idx: number) => {
+                  const { memberId, text } = msg
+                  const key = `${memberId}-${idx}`
+                  return memberId === member.id ? (
+                    <UserMessage key={key}>{text}</UserMessage>
+                  ) : text === FLOW_END ? (
+                    <EOFMessage key={key}>thanks for your messages, this flow is ended</EOFMessage>
+                  ) : (
+                    <MachineMessage key={key}>{text}</MachineMessage>
+                  )
+                })}
                 <div ref={endMarker} />
               </div>
               <div className="flex items-center">
@@ -144,19 +158,28 @@ export default function Home() {
                   value={userMessage}
                   onChange={(evt) => setUserMessage(evt.target.value)}
                   onKeyDown={(evt) => {
-                    const { code } = evt;
+                    const { code } = evt
                     if (code === 'Enter' && userMessage !== '') {
-                      sendUserMessage();
+                      sendUserMessage()
                     }
                     if (code === 'Escape') {
-                      setUserMessage('');
+                      setUserMessage('')
                     }
-                  }
-                  }
+                  }}
                   placeholder="Write message, press ENTER to send"
                 />
-              <PrimaryButton disabled={!isActiveFlow || userMessage === ''} onClick={sendUserMessage}>send</PrimaryButton>
-              <SecondaryButton disabled={!isActiveFlow  || userMessage === ''} onClick={() => setUserMessage('')}>clear</SecondaryButton>
+                <PrimaryButton
+                  disabled={!isActiveFlow || userMessage === ''}
+                  onClick={sendUserMessage}
+                >
+                  send
+                </PrimaryButton>
+                <SecondaryButton
+                  disabled={!isActiveFlow || userMessage === ''}
+                  onClick={() => setUserMessage('')}
+                >
+                  clear
+                </SecondaryButton>
               </div>
             </div>
           </div>
