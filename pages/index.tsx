@@ -1,7 +1,18 @@
 import Head from 'next/head'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { FLOWS, FLOW_END } from '@/lib/models'
+import { EOFMessage, MachineMessage, UserMessage } from '@/components/Message'
+import { PrimaryButton, SecondaryButton } from '@/components/Button'
+import type { Flow, Member } from '@/lib/models'
 
-async function simulateFlow(flowId: number, member: any, message: string) {
+interface FlowParams {
+  flowId: number
+  member: Member
+  message?: string
+  startIndex?: number
+}
+
+const simulateFlow = async ({ flowId, member, message = '', startIndex = 0 }: FlowParams) => {
   const res = await fetch(`/api/flows/${flowId}/simulate`, {
     method: 'POST',
     headers: {
@@ -10,17 +21,64 @@ async function simulateFlow(flowId: number, member: any, message: string) {
     body: JSON.stringify({
       member,
       message,
-      startIndex: 0,
+      startIndex,
     }),
   })
-  return res
+  const messages = await res.json()
+  return messages
+}
+
+interface Message {
+  memberId: Member['id']
+  text: string
+}
+
+interface FlowState {
+  startIndex: number
+  messages: Message[]
+}
+
+const emptyFlow: FlowState = {
+  startIndex: 0,
+  messages: [],
+}
+
+const member: Member = {
+  id: 0,
+  name: '',
+  email: '',
+  phoneNumber: '',
+  isSubscribed: false,
 }
 
 export default function Home() {
-  const [flowId, setFlowId] = useState(1)
+  const [flowId, setFlowId] = useState(0)
+  const [flowState, updateFlow] = useState<FlowState>(emptyFlow)
+  const [userMessage, setUserMessage] = useState('')
+  const endMarker = useRef<HTMLDivElement>(null)
 
-  // This format provided for convenience. Please change if necessary.
-  const [messages, setMessages] = useState([{ message: 'placeholder, remove me' }])
+  const isActiveFlow = flowId !== 0
+
+  const sendUserMessage = () => {
+    simulateFlow({ flowId, member, message: userMessage, startIndex: flowState.startIndex }).then(
+      (result) => {
+        const { ok, messages, stopIndex } = result
+        if (ok) {
+          updateFlow({
+            startIndex: stopIndex,
+            messages: [
+              ...[...flowState.messages, { memberId: member.id, text: userMessage }, ...messages],
+            ],
+          })
+          setUserMessage('')
+        }
+      }
+    )
+  }
+
+  useEffect(() => {
+    endMarker?.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [flowState.messages])
 
   return (
     <div className="h-screen bg-gray-50">
@@ -33,45 +91,95 @@ export default function Home() {
         <div className="flex min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8">
           <div className="sm:mx-auto sm:w-full sm:max-w-md">
             <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-              Please implement a &quot;Flow Simulator&quot;
+              &quot;Flow Simulator&quot;
             </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
-              At the endpoint `/api/flows/[flowId]/simulate`, please implement a route that takes
-              whatever inputs may be necessary and returns whatever information you feel is
-              necessary to conduct and display an ongoing conversation between a member and a flow.
-              Below, please display the messages, back and forth, betwen the member and the flow.
-            </p>
+            <div className="mt-2 text-center text-sm text-gray-600">
+              <div>
+                <p className="mt-2 text-center text-sm text-gray-600">
+                  We have couple topics to chat about. Feel free to choose another one any time.
+                </p>
+              </div>
+            </div>
           </div>
           <div className="mt-8 mx-auto max-w-sm text-center">
             <select
               className="border mx-auto border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-              onChange={(e) => setFlowId(parseInt(e.target.value || '1', 10))}
+              onChange={(e) => {
+                const fId = parseInt(e.target.value, 10)
+                setFlowId(fId)
+
+                if (fId > 0) {
+                  simulateFlow({ flowId: fId, member }).then((data) => {
+                    const { ok, messages, stopIndex } = data
+                    if (ok) {
+                      updateFlow({
+                        startIndex: stopIndex,
+                        messages,
+                      })
+                    }
+                  })
+                } else {
+                  updateFlow(emptyFlow)
+                }
+              }}
             >
-              <option>1</option>
-              <option>2</option>
-              <option>3</option>
+              <option value="0">Please select desired flow</option>
+              {FLOWS.map((flow: Flow) => {
+                const { id, name } = flow
+                return (
+                  <option value={id} key={id}>
+                    {name}
+                  </option>
+                )
+              })}
             </select>
-            <p className="mt-2 text-center text-sm text-gray-600">
-              Feel free to use (or not use) this selector to flip between potential flows. Three are
-              provided.
-            </p>
           </div>
 
           <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-2xl">
             <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-              <div className="border-solid border-2 border-indigo-600 h-64">
-                {messages.map((m, i) => (
-                  <div key={i} className="m-1 bg-slate-200">
-                    {m.message}
-                  </div>
-                ))}
+              <div className="border-solid border-2 border-indigo-600 h-64 overflow-y-scroll">
+                {flowState.messages.map((msg: Message, idx: number) => {
+                  const { memberId, text } = msg
+                  const key = `${memberId}-${idx}`
+                  return memberId === member.id ? (
+                    <UserMessage key={key}>{text}</UserMessage>
+                  ) : text === FLOW_END ? (
+                    <EOFMessage key={key}>thanks for your messages, this flow is ended</EOFMessage>
+                  ) : (
+                    <MachineMessage key={key}>{text}</MachineMessage>
+                  )
+                })}
+                <div ref={endMarker} />
               </div>
-              <div className="border-solid border border-slate-100 my-1">
+              <div className="flex items-center">
                 <input
-                  className="w-full"
-                  onChange={(e) => console.warn(e.target.value)}
-                  placeholder="Send message"
+                  className="w-full border-solid border border-slate-100 rounded-md my-1 grow w-full h-10"
+                  disabled={!isActiveFlow}
+                  value={userMessage}
+                  onChange={(evt) => setUserMessage(evt.target.value)}
+                  onKeyDown={(evt) => {
+                    const { code } = evt
+                    if (code === 'Enter' && userMessage !== '') {
+                      sendUserMessage()
+                    }
+                    if (code === 'Escape') {
+                      setUserMessage('')
+                    }
+                  }}
+                  placeholder="Write message, press ENTER to send"
                 />
+                <PrimaryButton
+                  disabled={!isActiveFlow || userMessage === ''}
+                  onClick={sendUserMessage}
+                >
+                  send
+                </PrimaryButton>
+                <SecondaryButton
+                  disabled={!isActiveFlow || userMessage === ''}
+                  onClick={() => setUserMessage('')}
+                >
+                  clear
+                </SecondaryButton>
               </div>
             </div>
           </div>

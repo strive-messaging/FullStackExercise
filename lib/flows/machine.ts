@@ -4,22 +4,29 @@
 // Implements a cursor that advances across a flow definition
 // and processes inputs with actions
 
-import { Flow, Member } from "../models";
+import type { Flow, Member } from "../models";
+import { FLOW_END } from "../models";
+
+const memberId = -1; // muchine id
 
 export async function init(
-  member: Member,
   flow: Flow
 ) {
   let stopIndex = 0
   const messages = []
   for (const action of flow.definition) {
-    messages.push(action.message)
-    if (['getInfo', 'multipleChoice'].includes(action.type)) {
-      break
+    const { message, type } = action;
+    messages.push( { memberId, text: message });
+    
+    if (type === 'multipleChoice') {
+      return { messages, stopIndex };
     }
     stopIndex++
+    if (type === 'getInfo') {
+      return { messages, stopIndex };
+    }
   }
-  return { messages, stopIndex }
+  return { messages, stopIndex };
 }
 
 export async function receiveMessage(
@@ -28,27 +35,34 @@ export async function receiveMessage(
   startIndex: number,
   message: string
 ) {
-  let index = 0
-  const messages = []
+  let index = 0;
+  const messages = [];
+  
   for (const action of flow.definition.slice(startIndex)) {
-    messages.push(action.message)
-    if (index !== 0 && ['getInfo', 'multipleChoice'].includes(action.type)) {
-      break
-    }
+    messages.push({ memberId, text: action.message });
+    index++;
+
     // GetInfo: Save info in message to key in member
     if (action.type === 'getInfo') {
-      (member[action.key] as any) = message
+      (member[action.key] as any) = message;
     }
     if (action.type === 'multipleChoice') {
       const match = action.responses.find(r => {
         return r.value === message.trim() || r.synonyms.includes(message.trim())
       })
       if (match) {
-        messages.push(match.message)
+        messages.pop();
+        messages.push({ memberId, text: match.message });
       }
     }
-    index++
+    if (['getInfo', 'multipleChoice'].includes(action.type)) {
+      break;
+    }
   }
-  console.warn({ messages, stopIndex: startIndex + index, member })
-  return { messages, stopIndex: startIndex + index, member }
+
+  if (flow.definition.length <= startIndex) {
+    messages.push({memberId, text: FLOW_END});
+  }
+
+  return { messages, stopIndex: startIndex + index, member };
 }
