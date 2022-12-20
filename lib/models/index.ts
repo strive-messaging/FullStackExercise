@@ -31,13 +31,24 @@ export interface FlowMultipleChoiceAction {
 
 export type FlowAction = FlowMessageAction | FlowMultipleChoiceAction | FlowGetInfoAction
 
-export interface Member {
-  id: number;
-  name: string;
-  email: string;
-  phoneNumber: string;
-  isSubscribed: boolean;
+enum MemberData {
+  id = 'id',
+  name = 'name',
+  email = 'email',
+  phoneNumber = 'phoneNumber',
+  isSubscribed = 'isSubscribed'
 }
+
+const { id, name, email, phoneNumber, isSubscribed } = MemberData
+
+export type Member = {
+  [id]: number;
+  [name]: string;
+  [email]: string;  
+  [phoneNumber]: string;  
+  [isSubscribed]: boolean;
+}
+
 
 export interface User {
   id: number;
@@ -46,6 +57,7 @@ export interface User {
   organizationId: number;
 }
 
+export const FLOW_END: string = 'EOF';
 // Flows Array
 // Normally this would be in a database, but is just here for convenience.
 export const FLOWS: Flow[] = [
@@ -61,13 +73,17 @@ export const FLOWS: Flow[] = [
                   { value: 'green', message: 'You responded "green".', synonyms: [] },
                   { value: 'blue', message: 'You responded "blue".', synonyms: [] },
               ]
-          },
+          }
       ]
   },
   {
-      id: 3, name: 'Asking Question Flow', definition: [
-          { type: 'getInfo', message: 'What is your name?', key: 'name' },
-          { type: 'message', message: 'Thank you for sending in your name!' }
-      ]
+      id: 3, name: 'Asking Question Flow',
+      definition: Object.values(MemberData)
+                    .filter(key => key !== 'id' && key !== 'isSubscribed')
+                    .reduce((acc: Array<FlowGetInfoAction|FlowMessageAction>, key) => [
+                          ...acc, 
+                          { type: 'getInfo', message: `What is your ${key as string}?`, key }, 
+                          { type: 'message', message: `Thank you for sending in your ${key as string}!` } 
+                        ], [])
   }
 ]
